@@ -16,10 +16,19 @@ This project implements a Python-based microservice (FastAPI) that exposes mathe
 2. Access the frontend at [http://localhost:3000](http://localhost:3000)
 3. API endpoints at [http://localhost:8000/docs](http://localhost:8000/docs)
 
+cd backend 
+.venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+
+cd frontend
+npm install
+npm start 
 ## Extensibility
 
 The app follows MVC patterns, cleanly separates models, schemas, and logic, and can be extended for new operations or additional microservices.
 
 ## Authors
 
-- Cosmin-Gabriel Petriuc & Team
+- Cosmin-Gabriel Petriuc
