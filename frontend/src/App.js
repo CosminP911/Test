@@ -7,6 +7,8 @@ import GamesPage from "./GamesPage";
 import "./App.css";
 import TicTacToe from "./games/TicTacToe";
 import "./games/TicTacToe.css"; // Importing game styles
+import "./games/MathQuiz.css"; // Importing Math Quiz styles
+import MathQuiz from "./games/MathQuiz";
 
 // Layout component with sidebar and topbar
 function Layout({ onLogout, children }) {
@@ -79,7 +81,7 @@ function App() {
                   <Route path="/games" element={<GamesPage />} />
                   <Route path="/games/tictactoe" element={<TicTacToe />} />
                   <Route path="/games/guessnumber" element={<div style={{padding:40}}>Guess Number coming soon!</div>} />
-                  <Route path="/games/mathquiz" element={<div style={{padding:40}}>Math Quiz coming soon!</div>} />
+                  <Route path="/games/mathquiz" element={<MathQuiz/>} />
 
                   {/* Fallback to calculator for unknown private routes */}
                   <Route path="*" element={<Navigate to="/calculator" />} />
