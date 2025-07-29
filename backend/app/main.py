@@ -2,9 +2,11 @@ from fastapi import FastAPI, Depends, HTTPException, status, Body, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from . import models, schemas, crud, utils
+from .schemas import UserUpdate
+
 from .database import SessionLocal, engine, Base
 import math
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -50,10 +52,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise credentials_exception
     return user
 
-class UserUpdate(BaseModel):
-    username: str | None = None
-    password: str | None = None
-    old_password: str | None = None
+
+
 
 @app.post("/calculate/", response_model=schemas.Request)
 def calculate(req: schemas.RequestCreate, db: Session = Depends(get_db), current_user: schemas.UserRead = Depends(get_current_user)):
@@ -154,3 +154,17 @@ def verify_password(
     if not utils.verify_password(password, current_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid password")
     return {"ok": True}
+
+class UserUpdate(BaseModel):
+    username: str | None = None
+    password: str | None = None
+    old_password: str | None = None
+    
+    @field_validator('username', 'password')
+    def no_spaces(cls, v, info):
+        if v != v.strip():
+            raise ValueError(f"{info.field_name} cannot have leading or trailing spaces")
+        if ' ' in v:
+            raise ValueError(f"{info.field_name} cannot contain spaces")
+    
+        return v

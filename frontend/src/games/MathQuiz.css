@@ -1,8 +1,9 @@
 .quiz-root {
   display: flex;
+  bottom: 5%;
   align-items: center;
   justify-content: center;
-  height: 94vh;
+  height: 70vh;
 }
 
 .quiz-card {
