@@ -10,6 +10,9 @@ function ProfilePage() {
   const [form, setForm] = useState({username: "", curPw: "", newPw: "", newPw2: ""});
   const [pwStep, setPwStep] = useState(0); // 0: edit username & check current pw, 1: allow new pw fields
 
+  const hasSpaces = (s) => /\s/.test(s);
+
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     fetch("http://localhost:8000/me", {
@@ -26,98 +29,131 @@ function ProfilePage() {
     setForm({username: user.username, curPw: "", newPw: "", newPw2: ""});
   };
 
-  // Step 1: Edit username, verify current password if user wants to change password
-  const handleVerifyOrSave = async (e) => {
-    e.preventDefault();
-    setMsg("");
-    setLoading(true);
-    // If no new password is requested, we just update username (if changed)
-    if (!form.newPw && !form.newPw2 && !form.curPw) {
-      // Just update username
-      return updateProfile({username: form.username});
+  const validateProfileInputs = () => {
+  if (form.username && (form.username.trim() !== form.username || hasSpaces(form.username))) {
+    return "Username cannot have leading/trailing spaces or contain spaces.";
+  }
+  if (form.username && form.username.length < 3) {
+    return "Username must be at least 3 characters.";
+  }
+  if (form.newPw) {
+    if (form.newPw.trim() !== form.newPw || hasSpaces(form.newPw)) {
+      return "New password cannot have leading/trailing spaces or contain spaces.";
     }
-    // If user wants to change password, check if current password is entered and correct
-    if (!form.curPw) {
-      setMsg("Please enter your current password to change password.");
-      setLoading(false);
-      return;
-    }
-    // Verify password with backend
-    const token = localStorage.getItem("token");
-    try {
-      const resp = await fetch("http://localhost:8000/verify-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ password: form.curPw })
-      });
-      if (resp.ok) {
-        setPwStep(1);
-        setMsg("");
-      } else {
-        setMsg("Incorrect current password.");
-      }
-    } catch {
-      setMsg("Server error.");
-    }
-    setLoading(false);
-  };
-
-  // Step 2: Set new password
-  const handleSaveNewPassword = async (e) => {
-    e.preventDefault();
-    setMsg("");
-    setLoading(true);
-    if (!form.newPw || !form.newPw2) {
-      setMsg("Please fill both new password fields.");
-      setLoading(false);
-      return;
+    if (form.newPw.length < 6) {
+      return "New password must be at least 6 characters.";
     }
     if (form.newPw !== form.newPw2) {
-      setMsg("New passwords do not match.");
+      return "New passwords do not match.";
+    }
+  }
+  return "";
+};
+
+  // Step 1: Edit username, verify current password if user wants to change password
+ const handleVerifyOrSave = async (e) => {
+  e.preventDefault();
+  setMsg("");
+  setLoading(true);
+
+  // Validate inputs
+  const validationMsg = validateProfileInputs();
+  if (validationMsg) {
+    setMsg(validationMsg);
+    setLoading(false);
+    return;
+  }
+
+  // If no new password is requested, just update username
+  if (!form.newPw && !form.newPw2 && !form.curPw) {
+    await updateProfile({username: form.username});
+    return;
+  }
+  // If user wants to change password, check if current password is entered and correct
+  if (!form.curPw) {
+    setMsg("Please enter your current password to change password.");
+    setLoading(false);
+    return;
+  }
+  // Verify password with backend
+  const token = localStorage.getItem("token");
+  try {
+    const resp = await fetch("http://localhost:8000/verify-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ password: form.curPw })
+    });
+    if (resp.ok) {
+      setPwStep(1);
+      setMsg("");
+    } else {
+      setMsg("Incorrect current password.");
+    }
+  } catch {
+    setMsg("Server error.");
+  }
+  setLoading(false);
+};
+
+// Step 2: Set new password
+const handleSaveNewPassword = async (e) => {
+  e.preventDefault();
+  setMsg("");
+  setLoading(true);
+
+  // Validate again
+  const validationMsg = validateProfileInputs();
+  if (validationMsg) {
+    setMsg(validationMsg);
+    setLoading(false);
+    return;
+  }
+
+  // Update username and password together
+  await updateProfile({
+    username: form.username,
+    password: form.newPw,
+    old_password: form.curPw
+  });
+};
+  // Shared profile update logic
+const updateProfile = async (payload) => {
+  const token = localStorage.getItem("token");
+  try {
+    const resp = await fetch("http://localhost:8000/me", {
+      method: "PUT",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` 
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      if (Array.isArray(data.detail)) {
+        setMsg(data.detail.map(e => e.msg).join(" | "));
+      } else if (typeof data.detail === "string") {
+        setMsg(data.detail);
+      } else {
+        setMsg("Update failed. Try again.");
+      }
       setLoading(false);
       return;
     }
-    // Update username and password together
-    updateProfile({
-      username: form.username,
-      password: form.newPw,
-      old_password: form.curPw
-    });
-  };
-
-  // Shared profile update logic
-  const updateProfile = async (payload) => {
-    const token = localStorage.getItem("token");
-    try {
-      const resp = await fetch("http://localhost:8000/me", {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` 
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = await resp.json();
-      if (!resp.ok) {
-        setMsg(data.detail || "Update failed");
-        setLoading(false);
-        return;
-      }
-      setUser(data);
-      setEditMode(false);
-      setMsg("Profile updated! Please log in again.");
-      setTimeout(() => {
-        localStorage.removeItem("token");
-        window.location.href = "/";
-      }, 1600);
-    } catch {
-      setMsg("Server error.");
-    }
+    setMsg("Profile updated! Please log in again.");
     setLoading(false);
-  };
+    setTimeout(() => {
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }, 1600);
+  } catch {
+    setMsg("Server error.");
+    setLoading(false);
+  }
+};
 
   return (
     <div style={{

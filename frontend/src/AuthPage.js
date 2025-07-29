@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import {motion} from "framer-motion";
 import "./AuthPage.css"; 
 
@@ -8,11 +8,25 @@ function AuthPage({ onAuthSuccess }) {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
 
+  const hasSpaces = (str) => /\s/.test(str);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErr("");
     if (!username || !password) {
       setErr("Please fill all fields.");
+      return;
+    }
+    if (hasSpaces(username) || hasSpaces(password)) {
+      setErr("Username and password cannot contain spaces.");
+      return;
+    }
+    if (username.trim() !==username || password.trim() !==password){
+      setErr("No leading or trailing spaces allowed.");
+      return;
+    }
+    if (username.length < 3 || password.length < 6) {
+      setErr("Username must be at least 3 characters and password at least 6.");
       return;
     }
 
