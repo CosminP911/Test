@@ -17,7 +17,7 @@ This project implements a Python-based microservice (FastAPI) that exposes mathe
 3. API endpoints at [http://localhost:8000/docs](http://localhost:8000/docs)
 
 cd backend 
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 

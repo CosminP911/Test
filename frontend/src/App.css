@@ -8,9 +8,12 @@ body, html, #root {
   background: #f7fafc;
   align-items: stretch;
 
+
 }
 
 .sidebar {
+  margin-top:36px;
+  /* margin-bottom: 3%; */
   width: 72px;
   background: #6b46c1;
   display: flex;
@@ -20,8 +23,9 @@ body, html, #root {
   box-shadow: 2px 0 16px rgba(107, 70, 193, 0.10);
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
-  margin: 36px 0;
+  /* margin: 36px 0; */
   min-height: 620px;
+  max-height: 700px;
   position: relative;
 }
 
@@ -43,6 +47,7 @@ body, html, #root {
 .content {
   flex: 1;
   padding: 0;
+  /* margin-bottom: 3%; */
   /* margin-left: 0; */
   display: flex;
   flex-direction: column;
@@ -54,6 +59,7 @@ body, html, #root {
 
 .topbar {
   width: 100%;
+
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -100,12 +106,14 @@ body, html, #root {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: 588px;
+  min-height: 621px;
   max-height: 700px;
   padding: 0;
   background-color: #c1a9f2;
   box-sizing: border-box;
   margin-bottom: auto;
+  
+
 }
 
 

@@ -16,7 +16,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 
-
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.add_middleware(
